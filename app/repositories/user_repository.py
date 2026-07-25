@@ -10,11 +10,11 @@ class UserRepository:
             self.db.query(User).filter(User.email == email).first()
         )
 
-    def create(self, name: str, email: str, hashed_password: str) -> User:
+    def create(self, name: str, email: str, password_hash: str) -> User:
         user = User(
             name=name,
             email=email,
-            hashed_password=hashed_password
+            password_hash=password_hash
         )
         self.db.add(user)
         self.db.commit()

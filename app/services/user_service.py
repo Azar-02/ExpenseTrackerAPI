@@ -19,12 +19,15 @@ class UserService:
             )
             
         # Hash password
-        hashed_password = hash_password(user_data.password)
+        password_hash = hash_password(user_data.password)
 
         # Save user
         user = self.repository.create(
             name=user_data.name,
             email=user_data.email,
-            hashed_password=hashed_password
+            password_hash=password_hash
         )
         return user
+
+    
+
