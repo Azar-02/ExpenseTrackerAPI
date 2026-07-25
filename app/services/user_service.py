@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate
-from app.utils import hash_password
+from app.utils.security import hash_password
 
 class UserService:
     def __init__(self, db: Session):
