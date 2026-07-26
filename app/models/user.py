@@ -1,7 +1,7 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
-
+from typing import List
 
 
 class User(Base):
@@ -22,5 +22,6 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(
         String(255)
     )
+    
+    expenses: Mapped[List["Expense"]] = relationship(back_populates="owner", cascade="all, delete-orphan",)
 
-    expenses = relationship("Expense", back_populates="owner", cascade="all, delete-orphan")

@@ -1,6 +1,4 @@
 from fastapi import HTTPException, status
-from sqlalchemy import Delete
-from sqlalchemy import Delete
 from sqlalchemy.orm import Session
 
 from app.models.user import User
