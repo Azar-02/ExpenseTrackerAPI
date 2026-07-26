@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Integer, String, ForeignKey, Numeric, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database import Base
+from app.database.base import Base
 
 class Expense(Base):
 
