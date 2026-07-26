@@ -26,13 +26,16 @@ class ExpenseRepository:
 
     # get expense
     def get_all(self, expense_id: int, owner_id: int):
+
         return self.db.query(Expense).filter(Expense.id == expense_id, Expense.owner_id == owner_id).first()
 
 
     # update expense
     def update(self, expense: Expense, update_data: dict):
-        for key, value in update_data.items():
-            setattr(expense, key, value)
+
+        for field, value in update_data.items():
+            if hasattr(expense, field):
+                setattr(expense, field, value)
 
         self.db.commit()
         self.db.refresh(expense)
@@ -41,6 +44,7 @@ class ExpenseRepository:
 
     # delete expense
     def delete(self, expense: Expense):
+        
         self.db.delete(expense)
         self.db.commit()
         

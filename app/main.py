@@ -6,6 +6,7 @@ from app.database.connection import engine
 import app.models
 from app.routers.auth import router as auth_router
 from app.routers.user import router as user_router
+from app.routers.expense import router as expense_router
 
 
 app = FastAPI(
@@ -18,6 +19,7 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(expense_router)
 
 
 @app.get("/")
