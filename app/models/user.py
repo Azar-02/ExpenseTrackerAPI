@@ -1,7 +1,7 @@
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
+
 
 
 class User(Base):
@@ -22,3 +22,5 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(
         String(255)
     )
+
+    expenses = relationship("Expense", back_populates="owner", cascade="all, delete-orphan")
