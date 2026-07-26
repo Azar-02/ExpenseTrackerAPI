@@ -1,13 +1,24 @@
+from datetime import date
+from decimal import Decimal
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.models.expense import Expense
+
 
 class ExpenseRepository:
 
     def __init__(self, db: Session):
         self.db = db
 
-    # create expense
-    def create(self, title: str, amount, category: str, description: str, expense_date, owner_id: int):
+    def create(
+        self,
+        title: str,
+        amount: Decimal,
+        category: str,
+        description: Optional[str],
+        expense_date: date,
+        owner_id: int,
+    ) -> Expense:
 
         expense = Expense(
             title=title,
@@ -15,7 +26,7 @@ class ExpenseRepository:
             category=category,
             description=description,
             expense_date=expense_date,
-            owner_id=owner_id
+            owner_id=owner_id,
         )
 
         self.db.add(expense)
@@ -24,14 +35,35 @@ class ExpenseRepository:
 
         return expense
 
-    # get expense
-    def get_all(self, expense_id: int, owner_id: int):
+    def get_all(self, owner_id: int):
 
-        return self.db.query(Expense).filter(Expense.id == expense_id, Expense.owner_id == owner_id).first()
+        return (
+            self.db.query(Expense)
+            .filter(Expense.owner_id == owner_id)
+            .order_by(Expense.expense_date.desc())
+            .all()
+        )
 
+    def get_by_id(
+        self,
+        expense_id: int,
+        owner_id: int,
+    ):
 
-    # update expense
-    def update(self, expense: Expense, update_data: dict):
+        return (
+            self.db.query(Expense)
+            .filter(
+                Expense.id == expense_id,
+                Expense.owner_id == owner_id,
+            )
+            .first()
+        )
+
+    def update(
+        self,
+        expense: Expense,
+        update_data: dict,
+    ):
 
         for field, value in update_data.items():
             if hasattr(expense, field):
@@ -42,9 +74,7 @@ class ExpenseRepository:
 
         return expense
 
-    # delete expense
     def delete(self, expense: Expense):
-        
+
         self.db.delete(expense)
         self.db.commit()
-        
