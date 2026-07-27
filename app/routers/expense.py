@@ -10,6 +10,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional
 from fastapi import Query
+from app.schemas.dashboard import DashboardResponse
 
 router = APIRouter(
     prefix="/expenses",
@@ -67,6 +68,15 @@ def get_expenses(
         search=search,
     )
 
+# Dashboard
+@router.get("/dashboard", response_model=DashboardResponse)
+
+def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+
+    service = ExpenseService(db)
+
+    return service.get_dashboard(current_user.id)
+
 # Get Expense By ID
 @router.get("/{expense_id}", response_model=ExpenseResponse)
 
@@ -93,3 +103,4 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db), current_user:
     service = ExpenseService(db)
 
     service.delete_expense(expense_id, current_user)
+

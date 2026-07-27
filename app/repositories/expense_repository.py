@@ -1,10 +1,8 @@
 from datetime import date
 from decimal import Decimal
 from typing import Optional
-
-from sqlalchemy import asc, desc, or_
+from sqlalchemy import asc, desc, func, or_
 from sqlalchemy.orm import Session
-
 from app.models.expense import Expense
 
 
@@ -156,3 +154,89 @@ class ExpenseRepository:
 
         self.db.delete(expense)
         self.db.commit()
+
+
+    def get_dashboard(
+    self,
+    owner_id: int,
+    ):
+        today = date.today()
+
+        total_expenses = (
+            self.db.query(
+                func.sum(Expense.amount)
+            )
+            .filter(
+                Expense.owner_id == owner_id
+            )
+            .scalar()
+        ) or 0
+
+        today_expenses = (
+            self.db.query(
+                func.sum(Expense.amount)
+            )
+            .filter(
+                Expense.owner_id == owner_id,
+                Expense.expense_date == today,
+            )
+            .scalar()
+        ) or 0
+
+        monthly_expenses = (
+            self.db.query(
+                func.sum(Expense.amount)
+            )
+            .filter(
+                Expense.owner_id == owner_id,
+                func.extract(
+                    "month",
+                    Expense.expense_date,
+                ) == today.month,
+                func.extract(
+                    "year",
+                    Expense.expense_date,
+                ) == today.year,
+            )
+            .scalar()
+        ) or 0
+
+        highest_expense = (
+            self.db.query(Expense)
+            .filter(
+                Expense.owner_id == owner_id
+            )
+            .order_by(
+                Expense.amount.desc()
+            )
+            .first()
+        )
+
+        category_summary = (
+            self.db.query(
+                Expense.category,
+                func.sum(
+                    Expense.amount
+                ).label("total"),
+            )
+            .filter(
+                Expense.owner_id == owner_id
+            )
+            .group_by(
+                Expense.category
+            )
+            .order_by(
+                func.sum(
+                    Expense.amount
+                ).desc()
+            )
+            .all()
+        )
+
+        return {
+            "total_expenses": total_expenses,
+            "today_expenses": today_expenses,
+            "monthly_expenses": monthly_expenses,
+            "highest_expense": highest_expense,
+            "category_summary": category_summary,
+        }

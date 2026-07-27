@@ -8,6 +8,11 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.repositories.expense_repository import ExpenseRepository
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
+from app.schemas.dashboard import (
+    CategorySummary,
+    DashboardResponse,
+    HighestExpense,
+)
 
 
 class ExpenseService:
@@ -106,3 +111,35 @@ class ExpenseService:
         )
 
         self.repository.delete(expense)
+
+    def get_dashboard(
+    self,
+    owner_id: int,
+    ):
+        dashboard = self.repository.get_dashboard(
+            owner_id
+        )
+
+        highest_expense = None
+
+        if dashboard["highest_expense"]:
+            highest_expense = HighestExpense(
+                title=dashboard["highest_expense"].title,
+                amount=dashboard["highest_expense"].amount,
+            )
+
+        category_summary = [
+            CategorySummary(
+                category=row.category,
+                total=row.total,
+            )
+            for row in dashboard["category_summary"]
+        ]
+
+        return DashboardResponse(
+            total_expenses=dashboard["total_expenses"],
+            today_expenses=dashboard["today_expenses"],
+            monthly_expenses=dashboard["monthly_expenses"],
+            highest_expense=highest_expense,
+            category_summary=category_summary,
+        )
