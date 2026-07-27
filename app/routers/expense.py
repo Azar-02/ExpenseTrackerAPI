@@ -11,6 +11,9 @@ from decimal import Decimal
 from typing import Optional
 from fastapi import Query
 from app.schemas.dashboard import DashboardResponse
+from fastapi import UploadFile, File
+from fastapi.responses import StreamingResponse
+
 
 router = APIRouter(
     prefix="/expenses",
@@ -96,11 +99,65 @@ def update_expense(expense_id: int, expense: ExpenseUpdate, db: Session = Depend
     return service.update_expense(expense_id, expense, current_user)
 
 # Delete Expense
-@router.delete("/{expense_id}",status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 
 def delete_expense(expense_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
 
     service = ExpenseService(db)
 
     service.delete_expense(expense_id, current_user)
+
+# Receipt
+@router.post("/{expense_id}/receipt")
+
+def upload_receipt(
+    expense_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ExpenseService(db)
+
+    return service.upload_receipt(
+        expense_id,
+        file,
+        current_user,
+    )
+
+# Export to CSV
+@router.get("/export/csv")
+
+def export_csv(
+    category: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    min_amount: Optional[Decimal] = None,
+    max_amount: Optional[Decimal] = None,
+    sort_by: str = "expense_date",
+    order: str = "desc",
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = ExpenseService(db)
+
+    csv_file = service.export_csv(
+        current_user=current_user,
+        category=category,
+        start_date=start_date,
+        end_date=end_date,
+        min_amount=min_amount,
+        max_amount=max_amount,
+        sort_by=sort_by,
+        order=order,
+        search=search,
+    )
+
+    return StreamingResponse(
+        csv_file,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=expenses.csv"
+        },
+    )
 

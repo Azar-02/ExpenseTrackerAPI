@@ -21,7 +21,9 @@ class Expense(Base):
         nullable=False,
     )
 
-    description: Mapped[str | None] = mapped_column(
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
+
+    receipt_url: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )

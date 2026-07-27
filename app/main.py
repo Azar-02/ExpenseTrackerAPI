@@ -8,7 +8,11 @@ from app.routers.auth import router as auth_router
 from app.routers.user import router as user_router
 from app.routers.expense import router as expense_router
 from app.routers import category
+from fastapi.staticfiles import StaticFiles
 
+
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Expense Tracker API",
@@ -16,7 +20,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-Base.metadata.create_all(bind=engine)
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads",
+)
 
 app.include_router(auth_router)
 app.include_router(user_router)

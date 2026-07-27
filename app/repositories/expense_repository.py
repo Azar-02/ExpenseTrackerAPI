@@ -240,3 +240,75 @@ class ExpenseRepository:
             "highest_expense": highest_expense,
             "category_summary": category_summary,
         }
+
+    def update_receipt(
+    self,
+    expense,
+    receipt_url: str,
+    ):
+        expense.receipt_url = receipt_url
+
+        self.db.commit()
+
+        self.db.refresh(expense)
+
+        return expense
+
+    def get_all_for_export(
+    self,
+    owner_id: int,
+    category: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    min_amount: Optional[Decimal] = None,
+    max_amount: Optional[Decimal] = None,
+    sort_by: str = "expense_date",
+    order: str = "desc",
+    search: Optional[str] = None,
+    ):
+        query = self.db.query(Expense).filter(
+            Expense.owner_id == owner_id
+        )
+
+        if category:
+            query = query.filter(
+                Expense.category.ilike(f"%{category}%")
+            )
+
+        if start_date:
+            query = query.filter(
+                Expense.expense_date >= start_date
+            )
+
+        if end_date:
+            query = query.filter(
+                Expense.expense_date <= end_date
+            )
+
+        if min_amount:
+            query = query.filter(
+                Expense.amount >= min_amount
+            )
+
+        if max_amount:
+            query = query.filter(
+                Expense.amount <= max_amount
+            )
+
+        if search:
+            query = query.filter(
+                Expense.title.ilike(f"%{search}%")
+            )
+
+        sort_column = getattr(
+            Expense,
+            sort_by,
+            Expense.expense_date,
+        )
+
+        if order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+
+        return query.all()
