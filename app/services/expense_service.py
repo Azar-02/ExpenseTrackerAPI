@@ -23,8 +23,12 @@ class ExpenseService:
         )
 
     # Get All Expenses
-    def get_expenses(self, current_user: User):
-        return self.repository.get_all(current_user.id)
+    def get_expenses(self, current_user: User, page: int, size: int):
+        return self.repository.get_all(
+            current_user.id,
+            page = page,
+            size = size,
+            )
 
     # Get One Expense
     def get_expense(self, expense_id: int, current_user: User):

@@ -11,7 +11,7 @@ class Expense(Base):
 
     title: Mapped[str] = mapped_column(String(100), nullable=False)
 
-    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
 
     category: Mapped[str] = mapped_column(String(50), nullable=False)
 

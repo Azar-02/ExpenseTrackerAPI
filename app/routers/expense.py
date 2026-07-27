@@ -1,13 +1,12 @@
 from typing import List
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-
 from app.auth.oauth import get_current_user
 from app.database.session import get_db
 from app.models.user import User
 from app.schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.services.expense_service import ExpenseService
+from fastapi import Query
 
 router = APIRouter(
     prefix="/expenses",
@@ -26,11 +25,18 @@ def create_expense(expense: ExpenseCreate, db: Session = Depends(get_db), curren
 # Get All Expenses
 @router.get("", response_model=List[ExpenseResponse])
 
-def get_expenses(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_expenses(page: int = Query(1, ge=1),
+                 size: int = Query(10, ge=1), 
+                 db: Session = Depends(get_db), 
+                 current_user: User = Depends(get_current_user)):
 
     service = ExpenseService(db)
 
-    return service.get_expenses(current_user)
+    return service.get_expenses(
+        current_user=current_user,
+        page=page,
+        size=size
+    )
 
 # Get Expense By ID
 @router.get("/{expense_id}", response_model=ExpenseResponse)

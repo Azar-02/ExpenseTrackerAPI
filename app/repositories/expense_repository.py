@@ -35,12 +35,16 @@ class ExpenseRepository:
 
         return expense
 
-    def get_all(self, owner_id: int):
+    def get_all(self, owner_id: int, page: int, size: int):
+
+        offset = (page - 1) * size
 
         return (
             self.db.query(Expense)
             .filter(Expense.owner_id == owner_id)
             .order_by(Expense.expense_date.desc())
+            .offset(offset)
+            .limit(size)
             .all()
         )
 
