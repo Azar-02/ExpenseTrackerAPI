@@ -35,6 +35,8 @@ class ExpenseService:
     end_date: Optional[date] = None,
     min_amount: Optional[Decimal] = None,
     max_amount: Optional[Decimal] = None,
+    sort_by: str = "expense_date",
+    order: str = "desc",
 ):
 
         return self.repository.get_all(
@@ -46,6 +48,8 @@ class ExpenseService:
             end_date=end_date,
             min_amount=min_amount,
             max_amount=max_amount,
+            sort_by=sort_by,
+            order=order,
         )
 
     # Get One Expense

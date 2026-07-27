@@ -1,7 +1,10 @@
 from datetime import date
 from decimal import Decimal
 from typing import Optional
+
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
+
 from app.models.expense import Expense
 
 
@@ -36,20 +39,21 @@ class ExpenseRepository:
         return expense
 
     def get_all(
-    self,
-    owner_id: int,
-    page: int,
-    size: int,
-    category: Optional[str] = None,
-    start_date: Optional[date] = None,
-    end_date: Optional[date] = None,
-    min_amount: Optional[Decimal] = None,
-    max_amount: Optional[Decimal] = None,
-):
+        self,
+        owner_id: int,
+        page: int,
+        size: int,
+        category: Optional[str] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        min_amount: Optional[Decimal] = None,
+        max_amount: Optional[Decimal] = None,
+        sort_by: str = "expense_date",
+        order: str = "desc",
+    ):
 
-        query = (
-            self.db.query(Expense)
-            .filter(Expense.owner_id == owner_id)
+        query = self.db.query(Expense).filter(
+            Expense.owner_id == owner_id
         )
 
         if category:
@@ -77,12 +81,31 @@ class ExpenseRepository:
                 Expense.amount <= max_amount
             )
 
+        sortable_columns = {
+            "title": Expense.title,
+            "amount": Expense.amount,
+            "category": Expense.category,
+            "expense_date": Expense.expense_date,
+        }
+
+        column = sortable_columns.get(
+            sort_by,
+            Expense.expense_date,
+        )
+
+        if order.lower() == "asc":
+            query = query.order_by(
+                asc(column)
+            )
+        else:
+            query = query.order_by(
+                desc(column)
+            )
+
         offset = (page - 1) * size
 
         return (
-            query.order_by(
-                Expense.expense_date.desc()
-            )
+            query
             .offset(offset)
             .limit(size)
             .all()
@@ -118,7 +141,10 @@ class ExpenseRepository:
 
         return expense
 
-    def delete(self, expense: Expense):
+    def delete(
+        self,
+        expense: Expense,
+    ):
 
         self.db.delete(expense)
         self.db.commit()
