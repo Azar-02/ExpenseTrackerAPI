@@ -6,6 +6,9 @@ from app.database.session import get_db
 from app.models.user import User
 from app.schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.services.expense_service import ExpenseService
+from datetime import date
+from decimal import Decimal
+from typing import Optional
 from fastapi import Query
 
 router = APIRouter(
@@ -25,17 +28,33 @@ def create_expense(expense: ExpenseCreate, db: Session = Depends(get_db), curren
 # Get All Expenses
 @router.get("", response_model=List[ExpenseResponse])
 
-def get_expenses(page: int = Query(1, ge=1),
-                 size: int = Query(10, ge=1), 
-                 db: Session = Depends(get_db), 
-                 current_user: User = Depends(get_current_user)):
+def get_expenses(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+
+    category: Optional[str] = None,
+
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+
+    min_amount: Optional[Decimal] = None,
+    max_amount: Optional[Decimal] = None,
+
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
 
     service = ExpenseService(db)
 
     return service.get_expenses(
         current_user=current_user,
         page=page,
-        size=size
+        size=size,
+        category=category,
+        start_date=start_date,
+        end_date=end_date,
+        min_amount=min_amount,
+        max_amount=max_amount,
     )
 
 # Get Expense By ID

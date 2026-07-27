@@ -1,9 +1,11 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-
 from app.models.user import User
 from app.repositories.expense_repository import ExpenseRepository
 from app.schemas.expense import ExpenseCreate,ExpenseUpdate
+from datetime import date
+from decimal import Decimal
+from typing import Optional
 
 class ExpenseService:
 
@@ -23,12 +25,28 @@ class ExpenseService:
         )
 
     # Get All Expenses
-    def get_expenses(self, current_user: User, page: int, size: int):
+    def get_expenses(
+    self,
+    current_user: User,
+    page: int,
+    size: int,
+    category: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    min_amount: Optional[Decimal] = None,
+    max_amount: Optional[Decimal] = None,
+):
+
         return self.repository.get_all(
-            current_user.id,
-            page = page,
-            size = size,
-            )
+            owner_id=current_user.id,
+            page=page,
+            size=size,
+            category=category,
+            start_date=start_date,
+            end_date=end_date,
+            min_amount=min_amount,
+            max_amount=max_amount,
+        )
 
     # Get One Expense
     def get_expense(self, expense_id: int, current_user: User):

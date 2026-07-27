@@ -35,14 +35,54 @@ class ExpenseRepository:
 
         return expense
 
-    def get_all(self, owner_id: int, page: int, size: int):
+    def get_all(
+    self,
+    owner_id: int,
+    page: int,
+    size: int,
+    category: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    min_amount: Optional[Decimal] = None,
+    max_amount: Optional[Decimal] = None,
+):
+
+        query = (
+            self.db.query(Expense)
+            .filter(Expense.owner_id == owner_id)
+        )
+
+        if category:
+            query = query.filter(
+                Expense.category == category
+            )
+
+        if start_date:
+            query = query.filter(
+                Expense.expense_date >= start_date
+            )
+
+        if end_date:
+            query = query.filter(
+                Expense.expense_date <= end_date
+            )
+
+        if min_amount:
+            query = query.filter(
+                Expense.amount >= min_amount
+            )
+
+        if max_amount:
+            query = query.filter(
+                Expense.amount <= max_amount
+            )
 
         offset = (page - 1) * size
 
         return (
-            self.db.query(Expense)
-            .filter(Expense.owner_id == owner_id)
-            .order_by(Expense.expense_date.desc())
+            query.order_by(
+                Expense.expense_date.desc()
+            )
             .offset(offset)
             .limit(size)
             .all()
