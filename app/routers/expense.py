@@ -26,32 +26,27 @@ def create_expense(expense: ExpenseCreate, db: Session = Depends(get_db), curren
     return service.create_expense(expense, current_user)
 
 # Get All Expenses
-@router.get(
-    "",
-    response_model=List[ExpenseResponse],
-)
+@router.get("/", response_model=list[ExpenseResponse])
 def get_expenses(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
-
     category: Optional[str] = None,
-
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
-
     min_amount: Optional[Decimal] = None,
     max_amount: Optional[Decimal] = None,
-
     sort_by: str = Query(
         "expense_date",
         pattern="^(title|amount|category|expense_date)$",
     ),
-
     order: str = Query(
         "desc",
         pattern="^(asc|desc)$",
     ),
-
+    search: Optional[str] = Query(
+        default=None,
+        description="Search by title or description",
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -69,6 +64,7 @@ def get_expenses(
         max_amount=max_amount,
         sort_by=sort_by,
         order=order,
+        search=search,
     )
 
 # Get Expense By ID

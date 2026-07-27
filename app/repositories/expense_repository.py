@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, or_
 from sqlalchemy.orm import Session
 
 from app.models.expense import Expense
@@ -21,8 +21,7 @@ class ExpenseRepository:
         description: Optional[str],
         expense_date: date,
         owner_id: int,
-    ) -> Expense:
-
+    ):
         expense = Expense(
             title=title,
             amount=amount,
@@ -50,10 +49,12 @@ class ExpenseRepository:
         max_amount: Optional[Decimal] = None,
         sort_by: str = "expense_date",
         order: str = "desc",
+        search: Optional[str] = None,
     ):
 
-        query = self.db.query(Expense).filter(
-            Expense.owner_id == owner_id
+        query = (
+            self.db.query(Expense)
+            .filter(Expense.owner_id == owner_id)
         )
 
         if category:
@@ -81,25 +82,33 @@ class ExpenseRepository:
                 Expense.amount <= max_amount
             )
 
-        sortable_columns = {
+        if search:
+            query = query.filter(
+                or_(
+                    Expense.title.ilike(f"%{search}%"),
+                    Expense.description.ilike(f"%{search}%"),
+                )
+            )
+
+        allowed_columns = {
             "title": Expense.title,
             "amount": Expense.amount,
             "category": Expense.category,
             "expense_date": Expense.expense_date,
         }
 
-        column = sortable_columns.get(
+        sort_column = allowed_columns.get(
             sort_by,
             Expense.expense_date,
         )
 
         if order.lower() == "asc":
             query = query.order_by(
-                asc(column)
+                asc(sort_column)
             )
         else:
             query = query.order_by(
-                desc(column)
+                desc(sort_column)
             )
 
         offset = (page - 1) * size
@@ -133,8 +142,7 @@ class ExpenseRepository:
     ):
 
         for field, value in update_data.items():
-            if hasattr(expense, field):
-                setattr(expense, field, value)
+            setattr(expense, field, value)
 
         self.db.commit()
         self.db.refresh(expense)
